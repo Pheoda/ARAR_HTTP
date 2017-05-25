@@ -1,0 +1,34 @@
+@keyframes arrivee
+{
+	0%{position: relative; left: -100px; opacity: 0;}
+	100%{position:  relative; left: 0px; opacity: 1;}
+}
+
+body
+{
+	width: 100%;
+	margin: auto;
+	min-width: 500px;
+	background-color: gray;
+	animation: arrivee 0.5s ease;
+}
+
+a
+{
+	text-decoration: none;
+}
+
+nav
+{
+	background-color: black;
+	min-height: 30px;
+	padding: 0;
+}
+nav a
+{
+	display: block;
+	float: left;
+	color: white;
+	width: 10%;
+	
+}

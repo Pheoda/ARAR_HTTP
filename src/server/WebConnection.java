@@ -1,22 +1,25 @@
-package http;
+package server;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class WebConnection extends Connection {
 
+    private String value;
+    private String reason;
+    
     public WebConnection(Socket connexion) {
         super(connexion);
     }
 
-    public byte[] fillBody(String fileName, String value, String reason) {
+    public byte[] fillBody(String fileName) {
         byte[] body;
+        int counter;
      
         fileName = System.getProperty("user.dir") + fileName;
         File f = new File(fileName);
@@ -26,28 +29,82 @@ public class WebConnection extends Connection {
         
         if (!f.exists()) { // Erreur 404
             value = "404";
-            reason = "Page non trouvée";
-            System.out.println("ERREUR 404");
+            reason = "File Not Found";
             return null;
         } else {
             value = "200";
             reason = "OK";
-
+            
             body = new byte[(int) f.length()];
 
             try {
                 FileInputStream file = new FileInputStream(f);
-                for (int i = 0; i < (int) f.length(); i++) {
-                    body[i] = (byte) file.read();
+                for (counter = 0; counter < (int) f.length(); counter++) {
+                    body[counter] = (byte) file.read();
                 }
             } catch (IOException ex) {
                 Logger.getLogger(WebConnection.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
-        System.out.println(new String(body));
+        //System.out.println(new String(body));
 
         return body;
+    }
+    
+    public byte[] createResponseStartLine(String version, String code, String reason) {
+        int size = version.length() + 1 + code.length() + 1 + reason.length() + 2;
+        byte[] message = new byte[size];
+        
+        int counter = 0;
+        
+        for(int i = 0; i < version.length(); i++)
+            message[counter++] = version.getBytes()[i];
+                
+        message[counter++] = (byte)' ';
+        
+        for(int i = 0; i < code.length(); i++)
+            message[counter++] = code.getBytes()[i];
+                
+        message[counter++] = (byte)' ';
+        
+        for(int i = 0; i < reason.length(); i++)
+            message[counter++] = reason.getBytes()[i];
+                
+        message[counter++] = CR;
+        message[counter++] = LF;
+                
+        return message;
+    }
+
+    public byte[] createHTTPMessage(byte[] start_line, ArrayList<String> headers, byte[] body) {
+        // Calcul taille du message
+        int size = start_line.length;
+        for(int i = 0; i < headers.size(); i++)
+            size += headers.get(i).length() + 2;
+        size += 2; // CR LF characters
+        size += body.length;
+        
+        byte[] message = new byte[size];
+        int counter = 0;
+        
+        for(int i = 0; i < start_line.length; i++)
+            message[counter++] = start_line[i];
+        
+        for(int i = 0; i < headers.size(); i++) {
+            for(int j = 0; j < headers.get(i).length(); j++)
+                message[counter++] = headers.get(i).getBytes()[j];
+            message[counter++] = CR;
+            message[counter++] = LF;
+        }
+        
+        message[counter++] = CR;
+        message[counter++] = LF;
+        
+        for(int i = 0; i < body.length; i++)
+            message[counter++] = body[i];
+        
+        return message;
     }
 
     @Override
@@ -58,7 +115,7 @@ public class WebConnection extends Connection {
                 int character, counter = 0;
                 boolean receivedCR = false, continueStartLine = true;
                 String request = new String();
-
+                
                 do {
                     character = bufIn.read();
 
@@ -105,19 +162,24 @@ public class WebConnection extends Connection {
                             case "jpg":
                                 headers.add("Content-Type: image/jpg");
                                 break;
+                            case "txt" :
+                                headers.add("Content-Type: text/plain");
+                                break;
                         }
                         break;
                     case "HEAD":
                         break;
                 }
 
-                String returnValue = new String();
-                String returnReason = new String();
-
-                byte[] body = fillBody(strings[1], returnValue, returnReason);
-
+                byte[] body = fillBody(strings[1]);
+                
+                if(body == null) // Si on a une erreur 404
+                    body = reason.getBytes();
+                
+                headers.add("Content-Length: " + body.length);
+                    
                 // Réponse envoyée au client
-                byte[] startLine = createResponseStartLine("HTTP/1.1", returnValue, returnReason);
+                byte[] startLine = createResponseStartLine("HTTP/1.1", value, reason);
 
                 byte[] message = createHTTPMessage(startLine, headers, body);
                 /*System.out.println();
@@ -125,6 +187,8 @@ public class WebConnection extends Connection {
                 System.out.println(new String(message));*/
                 out.write(message);
                 out.flush();
+                System.out.println(new String(message));
+                System.out.println("FLUSHED");
             } catch (IOException ex) {
                 Logger.getLogger(WebConnection.class.getName()).log(Level.SEVERE, null, ex);
             }

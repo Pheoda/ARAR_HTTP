@@ -112,30 +112,7 @@ public class WebConnection extends Connection {
         while (true) {
             try {
                 // Lecture de la requête envoyée par le client
-                int character, counter = 0;
-                boolean receivedCR = false, continueStartLine = true;
-                String request = new String();
-                
-                do {
-                    character = bufIn.read();
-
-                    //System.out.print((char)character);
-                    if (continueStartLine) {
-                        request += (char) character;
-                    }
-
-                    if (character == CR) {
-                        receivedCR = true;
-                    } else if (character != LF) {
-                        receivedCR = false;
-                        counter = 0;
-                    }
-                    if (character == LF && receivedCR) {
-                        receivedCR = false;
-                        continueStartLine = false; // On arrête la lecture de la première ligne
-                        counter++;
-                    }
-                } while (counter != 2); // Fin par double CR LF
+                String request = readFirstLine();
 
                 // Analyse requête reçue
                 String[] strings = request.split(" "); // Découpage de la requête
@@ -188,7 +165,7 @@ public class WebConnection extends Connection {
                 out.write(message);
                 out.flush();
                 System.out.println(new String(message));
-                System.out.println("FLUSHED");
+                System.out.println("!!FLUSHED!!");
             } catch (IOException ex) {
                 Logger.getLogger(WebConnection.class.getName()).log(Level.SEVERE, null, ex);
             }

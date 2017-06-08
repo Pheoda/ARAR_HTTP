@@ -55,7 +55,7 @@ public class Client extends Connection{
     @Override
     public void run() {
         try {
-            String filename = "/fichier.txt";
+            String filename = "/images/small.png";
             byte[] data = createRequestStartLine("GET", filename, "HTTP/1.1");
             out.write(data);
             out.flush();
@@ -67,13 +67,17 @@ public class Client extends Connection{
             int i;
             int length = 0;
             
-            for(i = 0; i < lines.length; i++) {
-                if(lines[i].contains("Content-Length")) {
-                    length = Integer.parseInt(lines[i].split(": ")[1]);
-                    System.out.println("Length : " + length);
-                }
-            }
+            for(i = 0; i < lines.length && !lines[i].contains("Content-Length"); i++);
             
+            if(i != lines.length) {
+                length = Integer.parseInt(lines[i].split(": ")[1]);
+            }
+            else {
+                System.err.println("Erreur : Content-Length non trouvé");
+                System.exit(1);
+            }
+              
+                    
             // Demander nom fichier
             String[] str = filename.split("\\.");
             String extension = "";
@@ -84,13 +88,16 @@ public class Client extends Connection{
             // Création du fichier
             FileOutputStream file = new FileOutputStream(localName);
             
-            // Ecriture dans le fichier            
+            // On récupère uniquement le corps du message, séparé par CR LF CR LF
+
+            // Ecriture dans le fichier
             for(int j = 0; j < length; j++) {
-                
+                file.write(bufIn.read());
             }
             
             file.close();
-
+            
+            System.out.println("Chargement terminé");
             
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);

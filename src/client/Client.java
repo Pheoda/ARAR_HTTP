@@ -27,12 +27,22 @@ public class Client extends Connection{
         
     }
             
-    public byte[] createRequestStartLine(String s) {
-        byte[] message = new byte[s.length() + 4];
+    public byte[] createRequestStartLine(String type, String file, String version) {
+        byte[] message = new byte[type.length() + 1 + file.length() + 1 + version.length() + 4];
         int counter = 0;
         
-        for(int i = 0; i < s.length(); i++)
-            message[counter++] = s.getBytes()[i];
+        for(int i = 0; i < type.length(); i++)
+            message[counter++] = type.getBytes()[i];
+        
+        message[counter++] = ' ';
+        
+        for(int i = 0; i < file.length(); i++)
+            message[counter++] = file.getBytes()[i];
+        
+        message[counter++] = ' ';
+        
+        for(int i = 0; i < version.length(); i++)
+            message[counter++] = version.getBytes()[i];
         
         message[counter++] = CR;
         message[counter++] = LF;
@@ -45,7 +55,8 @@ public class Client extends Connection{
     @Override
     public void run() {
         try {
-            byte[] data = createRequestStartLine("GET /fichier.txt HTTP/1.1");
+            String filename = "/fichier.txt";
+            byte[] data = createRequestStartLine("GET", filename, "HTTP/1.1");
             out.write(data);
             out.flush();
             
@@ -54,27 +65,28 @@ public class Client extends Connection{
             // On regarde dans reponse la valeur de Content-Length
             String[] lines = response.split("\r\n");
             int i;
+            int length = 0;
             
-            for(i = 0; i < lines.length && !lines[i].contains("Content-Length"); i++)
-                System.out.println(i + " : " + lines[i]);
-            
-            if(i == lines.length) {
-                System.err.println("Erreur : lines " + i);
-                System.exit(1);
+            for(i = 0; i < lines.length; i++) {
+                if(lines[i].contains("Content-Length")) {
+                    length = Integer.parseInt(lines[i].split(": ")[1]);
+                    System.out.println("Length : " + length);
+                }
             }
-            String[] lineContentLength = lines[i].split(": ");
-            int length = Integer.parseInt(lineContentLength[1]);
-            System.out.println("Length : " + length);
             
             // Demander nom fichier
-            String filename = "file.txt";
+            String[] str = filename.split("\\.");
+            String extension = "";
+            if(str.length > 0)
+                extension = str[str.length - 1];
+            String localName = "file" + "." + extension;
             
             // Création du fichier
-            FileOutputStream file = new FileOutputStream(filename);
+            FileOutputStream file = new FileOutputStream(localName);
             
             // Ecriture dans le fichier            
             for(int j = 0; j < length; j++) {
-                file.write(in.read());
+                
             }
             
             file.close();

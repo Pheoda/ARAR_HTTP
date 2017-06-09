@@ -9,10 +9,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class Connection implements Runnable {
-    
+
     public static final byte CR = 13;
     public static final byte LF = 10;
-    
+
     protected Socket socket;
     protected InputStream in;
     protected OutputStream out;
@@ -28,7 +28,7 @@ public abstract class Connection implements Runnable {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public String readFirstLine() {
         int character, counter = 0;
         boolean receivedCR = false, continueStartLine = true;
@@ -37,12 +37,12 @@ public abstract class Connection implements Runnable {
         do {
             try {
                 character = bufIn.read();
-                
+
                 //System.out.print((char)character);
                 if (continueStartLine) {
-                    request += (char)character;
+                    request += (char) character;
                 }
-                
+
                 if (character == CR) {
                     receivedCR = true;
                 } else if (character != LF) {
@@ -61,7 +61,7 @@ public abstract class Connection implements Runnable {
 
         return request;
     }
-    
+
     public String readBuffer() {
         int character, counter = 0;
         boolean receivedCR = false;
@@ -70,9 +70,9 @@ public abstract class Connection implements Runnable {
         do {
             try {
                 character = bufIn.read();
-                
-                request += (char)character;
-                
+
+                request += (char) character;
+
                 if (character == CR) {
                     receivedCR = true;
                 } else if (character != LF) {

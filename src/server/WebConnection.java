@@ -172,7 +172,7 @@ public class WebConnection extends Connection {
                 out.write(message);
                 out.flush();
                 System.out.println(new String(message));
-                System.out.println("!!FLUSHED!!");
+                System.out.println("!!INFO : FLUSHED!!");
             } catch (IOException ex) {
                 Logger.getLogger(WebConnection.class.getName()).log(Level.SEVERE, null, ex);
             }

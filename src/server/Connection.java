@@ -55,7 +55,7 @@ public abstract class Connection implements Runnable {
                     counter++;
                 }
             } catch (IOException ex) {
-                Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(1);
             }
         } while (counter != 2); // Fin par double CR LF
 
@@ -84,7 +84,7 @@ public abstract class Connection implements Runnable {
                     counter++;
                 }
             } catch (IOException ex) {
-                Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(1);
             }
         } while (counter != 2); // Fin par double CR LF
 

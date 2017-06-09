@@ -16,9 +16,13 @@ public class Client extends Connection {
     }
 
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Adresse IP serveur : ");
+        String ip = sc.nextLine();
+        System.out.print("Port serveur : ");
+        int port = sc.nextInt();
         try {
-            InetAddress ad = InetAddress.getByName("127.0.0.1");
-            Client c = new Client(ad, 2000);
+            Client c = new Client(InetAddress.getByName(ip), port);
             new Thread(c).start();
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
